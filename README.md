@@ -10,6 +10,23 @@ ob [文件夹]
 
 如果不传路径，`ob` 会打开当前目录。
 
+## 运行环境
+
+`open-obsidian` 目前只面向 macOS：
+
+- macOS，脚本依赖系统自带的 `zsh`、`open` 和 `osascript`。
+- 已安装 Obsidian，并且应用位于 `/Applications/Obsidian.app`、`~/Applications/Obsidian.app`，或已被 macOS 注册为 `Obsidian`。
+- 终端可以执行 `zsh` 脚本。
+- 手动安装需要 `git`，并且建议把 `~/.local/bin` 加入 `PATH`。
+
+当前版本在 macOS + Obsidian 1.12.7 环境下验证过。其他 Obsidian 版本只要继续使用相同的本地 vault 配置格式，一般也可以工作。
+
+如果电脑上没有安装 Obsidian，执行 `ob` 会提示：
+
+```text
+⚠️ 没找到 Obsidian，请先安装 Obsidian。
+```
+
 ## 安装
 
 克隆仓库，并把 `ob` 链接到你的 `PATH` 目录里：
@@ -54,6 +71,14 @@ obsidian://open?vault=<vault-id>
 这样可以让 Obsidian 明确打开传入的文件夹，而不是只启动应用，也不会遇到 `path` 找不到已知 vault 的问题。
 
 如果目标文件夹还不是 Obsidian 已知 vault，`ob` 会先退出 Obsidian，再登记并重新打开它。这是为了避免 Obsidian 运行中回写配置，覆盖新登记的 vault。
+
+登记 vault 时，`ob` 会更新这个文件：
+
+```text
+~/Library/Application Support/obsidian/obsidian.json
+```
+
+Obsidian 打开目标文件夹后，可能会在该文件夹下创建 `.obsidian/` 配置目录。这是 Obsidian 自己保存 vault 设置的目录，不是 `ob` 的源码文件。
 
 ## 输出提示
 

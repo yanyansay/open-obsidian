@@ -10,6 +10,23 @@ ob [folder]
 
 If no path is provided, `ob` opens the current directory.
 
+## Requirements
+
+`open-obsidian` currently targets macOS only:
+
+- macOS, because the script depends on the built-in `zsh`, `open`, and `osascript` commands.
+- Obsidian installed at `/Applications/Obsidian.app`, `~/Applications/Obsidian.app`, or registered with macOS as `Obsidian`.
+- A terminal that can run `zsh` scripts.
+- Manual installation requires `git`, and `~/.local/bin` should be on your `PATH`.
+
+This version has been verified on macOS with Obsidian 1.12.7. Other Obsidian versions should work as long as they keep the same local vault configuration format.
+
+If Obsidian is not installed, `ob` prints:
+
+```text
+⚠️ 没找到 Obsidian，请先安装 Obsidian。
+```
+
 ## Install
 
 Clone this repo and link `ob` into a directory on your `PATH`:
@@ -54,6 +71,14 @@ obsidian://open?vault=<vault-id>
 This asks Obsidian to open the given folder instead of only launching the app, and avoids the `path` lookup failure for folders that are not already known vaults.
 
 If the target folder is not already a known Obsidian vault, `ob` quits Obsidian first, registers the folder, then opens it again. This avoids Obsidian overwriting the newly registered vault while it is running.
+
+When registering a vault, `ob` updates this file:
+
+```text
+~/Library/Application Support/obsidian/obsidian.json
+```
+
+After Obsidian opens the target folder, it may create a `.obsidian/` config directory inside that folder. This is Obsidian's own vault settings directory, not a source file from `ob`.
 
 ## Output
 
