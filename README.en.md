@@ -43,19 +43,15 @@ ob ~/Documents/my-vault
 
 The given path is resolved to an absolute path before being opened.
 
-## Obsidian App Name
+## How It Opens Folders
 
-By default, the command uses the macOS app name `Obsidian`:
-
-```sh
-open -a Obsidian /path/to/folder
-```
-
-If your Obsidian app name is different, set `OB_OBSIDIAN_APP`:
+`ob` uses the Obsidian URL scheme to open the given folder:
 
 ```sh
-OB_OBSIDIAN_APP="Obsidian" ob ~/Documents/my-vault
+obsidian://open?path=/path/to/folder
 ```
+
+This asks Obsidian to open the path directly instead of only launching the app.
 
 ## Output
 
@@ -68,7 +64,7 @@ After opening with Obsidian:
 If Obsidian is not found:
 
 ```text
-⚠️ 没找到 Obsidian，请先安装 Obsidian，或用 OB_OBSIDIAN_APP 指定应用名。
+⚠️ 没找到 Obsidian，请先安装 Obsidian。
 ```
 
 If the target path does not exist:

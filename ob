@@ -3,9 +3,6 @@ set -euo pipefail
 
 usage() {
   print -u2 "Usage: ob [folder]"
-  print -u2
-  print -u2 "Environment overrides:"
-  print -u2 "  OB_OBSIDIAN_APP='Obsidian'    macOS app name to open with"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
@@ -31,38 +28,21 @@ if [[ ! -d "$target" ]]; then
 fi
 
 target="${target:A}"
-app="${OB_OBSIDIAN_APP:-Obsidian}"
 
-resolve_app() {
-  local name="$1"
-
-  if [[ -d "/Applications/${name}.app" ]]; then
-    print "/Applications/${name}.app"
-    return 0
-  fi
-
-  if [[ -d "$HOME/Applications/${name}.app" ]]; then
-    print "$HOME/Applications/${name}.app"
-    return 0
-  fi
-
-  if open -Ra "$name" >/dev/null 2>&1; then
-    print "$name"
-    return 0
-  fi
-
-  return 1
-}
-
-app_ref="$(resolve_app "$app" || true)"
-
-if [[ -z "$app_ref" ]]; then
-  print -u2 "⚠️ 没找到 Obsidian，请先安装 Obsidian，或用 OB_OBSIDIAN_APP 指定应用名。"
+if [[ ! -d "/Applications/Obsidian.app" && ! -d "$HOME/Applications/Obsidian.app" ]] && ! open -Ra "Obsidian" >/dev/null 2>&1; then
+  print -u2 "⚠️ 没找到 Obsidian，请先安装 Obsidian。"
   exit 69
 fi
 
-if open -a "$app_ref" "$target"; then
-  print "✅ 已用 ${app} 打开: $target"
+urlencode() {
+  osascript -l JavaScript -e 'function run(argv) { return encodeURIComponent(argv[0]); }' "$1"
+}
+
+encoded_target="$(urlencode "$target")"
+url="obsidian://open?path=${encoded_target}"
+
+if open "$url"; then
+  print "✅ 已用 Obsidian 打开: $target"
   exit 0
 else
   rc=$?

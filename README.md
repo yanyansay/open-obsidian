@@ -43,19 +43,15 @@ ob ~/Documents/my-vault
 
 传入的路径会先解析成绝对路径，再交给 Obsidian 打开。
 
-## Obsidian 应用名
+## 打开方式
 
-默认使用 macOS 应用名 `Obsidian`：
-
-```sh
-open -a Obsidian /path/to/folder
-```
-
-如果你的 Obsidian 应用名不同，可以用 `OB_OBSIDIAN_APP` 指定：
+`ob` 使用 Obsidian URL scheme 打开指定文件夹：
 
 ```sh
-OB_OBSIDIAN_APP="Obsidian" ob ~/Documents/my-vault
+obsidian://open?path=/path/to/folder
 ```
+
+这样可以让 Obsidian 明确打开传入的路径，而不是只启动应用。
 
 ## 输出提示
 
@@ -68,7 +64,7 @@ OB_OBSIDIAN_APP="Obsidian" ob ~/Documents/my-vault
 如果没有找到 Obsidian：
 
 ```text
-⚠️ 没找到 Obsidian，请先安装 Obsidian，或用 OB_OBSIDIAN_APP 指定应用名。
+⚠️ 没找到 Obsidian，请先安装 Obsidian。
 ```
 
 如果目标路径不存在：
