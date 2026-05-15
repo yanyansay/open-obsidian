@@ -1,0 +1,70 @@
+#!/bin/zsh
+set -euo pipefail
+
+usage() {
+  print -u2 "Usage: ob [folder]"
+  print -u2
+  print -u2 "Environment overrides:"
+  print -u2 "  OB_OBSIDIAN_APP='Obsidian'    macOS app name to open with"
+}
+
+if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if (( $# > 1 )); then
+  usage
+  exit 64
+fi
+
+target="${1:-.}"
+
+if [[ ! -e "$target" ]]; then
+  print -u2 "ob: path does not exist: $target"
+  exit 66
+fi
+
+if [[ ! -d "$target" ]]; then
+  print -u2 "ob: path is not a folder: $target"
+  exit 65
+fi
+
+target="${target:A}"
+app="${OB_OBSIDIAN_APP:-Obsidian}"
+
+resolve_app() {
+  local name="$1"
+
+  if [[ -d "/Applications/${name}.app" ]]; then
+    print "/Applications/${name}.app"
+    return 0
+  fi
+
+  if [[ -d "$HOME/Applications/${name}.app" ]]; then
+    print "$HOME/Applications/${name}.app"
+    return 0
+  fi
+
+  if open -Ra "$name" >/dev/null 2>&1; then
+    print "$name"
+    return 0
+  fi
+
+  return 1
+}
+
+app_ref="$(resolve_app "$app" || true)"
+
+if [[ -z "$app_ref" ]]; then
+  print -u2 "⚠️ 没找到 Obsidian，请先安装 Obsidian，或用 OB_OBSIDIAN_APP 指定应用名。"
+  exit 69
+fi
+
+if open -a "$app_ref" "$target"; then
+  print "✅ 已用 ${app} 打开: $target"
+  exit 0
+else
+  rc=$?
+  exit "$rc"
+fi
