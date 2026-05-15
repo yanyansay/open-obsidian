@@ -45,13 +45,15 @@ ob ~/Documents/my-vault
 
 ## 打开方式
 
-`ob` 使用 Obsidian URL scheme 打开指定文件夹：
+`ob` 会先把目标文件夹登记到 Obsidian 的本地 vault 列表，再用 Obsidian URL scheme 打开对应 vault ID：
 
 ```sh
-obsidian://open?path=/path/to/folder
+obsidian://open?vault=<vault-id>
 ```
 
-这样可以让 Obsidian 明确打开传入的路径，而不是只启动应用。
+这样可以让 Obsidian 明确打开传入的文件夹，而不是只启动应用，也不会遇到 `path` 找不到已知 vault 的问题。
+
+如果目标文件夹还不是 Obsidian 已知 vault，`ob` 会先退出 Obsidian，再登记并重新打开它。这是为了避免 Obsidian 运行中回写配置，覆盖新登记的 vault。
 
 ## 输出提示
 

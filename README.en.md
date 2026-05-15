@@ -45,13 +45,15 @@ The given path is resolved to an absolute path before being opened.
 
 ## How It Opens Folders
 
-`ob` uses the Obsidian URL scheme to open the given folder:
+`ob` first registers the target folder in Obsidian's local vault list, then opens the matching vault ID through the Obsidian URL scheme:
 
 ```sh
-obsidian://open?path=/path/to/folder
+obsidian://open?vault=<vault-id>
 ```
 
-This asks Obsidian to open the path directly instead of only launching the app.
+This asks Obsidian to open the given folder instead of only launching the app, and avoids the `path` lookup failure for folders that are not already known vaults.
+
+If the target folder is not already a known Obsidian vault, `ob` quits Obsidian first, registers the folder, then opens it again. This avoids Obsidian overwriting the newly registered vault while it is running.
 
 ## Output
 

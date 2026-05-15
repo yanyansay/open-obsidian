@@ -34,12 +34,123 @@ if [[ ! -d "/Applications/Obsidian.app" && ! -d "$HOME/Applications/Obsidian.app
   exit 69
 fi
 
+get_vault_id() {
+  osascript -l JavaScript - "$1" <<'JXA'
+ObjC.import("Foundation");
+
+function run(argv) {
+  const target = argv[0];
+  const configPath = ObjC.deepUnwrap($.NSString.stringWithString("~/Library/Application Support/obsidian/obsidian.json").stringByExpandingTildeInPath);
+  const data = $.NSData.dataWithContentsOfFile(configPath);
+  if (!data) return "";
+
+  const parsed = $.NSJSONSerialization.JSONObjectWithDataOptionsError(data, 0, null);
+  if (!parsed) return "";
+
+  const config = ObjC.deepUnwrap(parsed);
+  const vaults = config.vaults || {};
+
+  for (const id of Object.keys(vaults)) {
+    if (vaults[id] && vaults[id].path === target) return id;
+  }
+
+  return "";
+}
+JXA
+}
+
+quit_obsidian_for_reload() {
+  if [[ "$(osascript -e 'application "Obsidian" is running')" != "true" ]]; then
+    return 0
+  fi
+
+  osascript -e 'tell application "Obsidian" to quit' >/dev/null
+
+  for _ in {1..30}; do
+    if [[ "$(osascript -e 'application "Obsidian" is running')" != "true" ]]; then
+      return 0
+    fi
+    sleep 0.2
+  done
+
+  print -u2 "ob: Obsidian is still running; please quit it and retry."
+  exit 70
+}
+
+register_vault() {
+  osascript -l JavaScript - "$1" <<'JXA'
+ObjC.import("Foundation");
+
+function unwrap(value) {
+  return ObjC.deepUnwrap(value);
+}
+
+function readJson(path) {
+  const data = $.NSData.dataWithContentsOfFile(path);
+  if (!data) return {};
+
+  const parsed = $.NSJSONSerialization.JSONObjectWithDataOptionsError(data, 0, null);
+  if (!parsed) return {};
+
+  return unwrap(parsed);
+}
+
+function writeJson(path, object) {
+  const json = JSON.stringify(object, null, 2);
+  const text = $.NSString.stringWithString(json + "\n");
+  return text.writeToFileAtomicallyEncodingError(path, true, $.NSUTF8StringEncoding, null);
+}
+
+function makeVaultId(vaults) {
+  while (true) {
+    const id = unwrap($.NSUUID.UUID.UUIDString).replace(/-/g, "").toLowerCase().slice(0, 16);
+    if (!vaults[id]) return id;
+  }
+}
+
+function run(argv) {
+  const target = argv[0];
+  const configDir = unwrap($.NSString.stringWithString("~/Library/Application Support/obsidian").stringByExpandingTildeInPath);
+  const configPath = configDir + "/obsidian.json";
+  const fm = $.NSFileManager.defaultManager;
+
+  if (!fm.fileExistsAtPath(configDir)) {
+    fm.createDirectoryAtPathWithIntermediateDirectoriesAttributesError(configDir, true, null, null);
+  }
+
+  const config = readJson(configPath);
+  if (!config.vaults) config.vaults = {};
+
+  const id = makeVaultId(config.vaults);
+  config.cli = true;
+  config.vaults[id] = {
+    path: target,
+    ts: Date.now(),
+    open: true
+  };
+
+  if (!writeJson(configPath, config)) {
+    throw new Error("failed to write Obsidian config");
+  }
+
+  return id;
+}
+JXA
+}
+
 urlencode() {
   osascript -l JavaScript -e 'function run(argv) { return encodeURIComponent(argv[0]); }' "$1"
 }
 
-encoded_target="$(urlencode "$target")"
-url="obsidian://open?path=${encoded_target}"
+vault_id="$(get_vault_id "$target")"
+
+if [[ -z "$vault_id" ]]; then
+  quit_obsidian_for_reload
+  vault_id="$(register_vault "$target")"
+fi
+
+encoded_vault_id="$(urlencode "$vault_id")"
+url="obsidian://open?vault=${encoded_vault_id}"
 
 if open "$url"; then
   print "✅ 已用 Obsidian 打开: $target"
